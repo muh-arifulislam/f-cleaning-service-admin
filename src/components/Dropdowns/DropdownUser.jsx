@@ -32,7 +32,11 @@ const DropdownUser = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setUser(data);
+        if (data.success) {
+          setUser(data.data);
+        } else {
+          throw new Error("Failed to fetch data");
+        }
       })
       .catch((error) => console.log(error));
   }, []);
@@ -81,7 +85,7 @@ const DropdownUser = () => {
             "text-sm py-2 px-4 font-medium block w-full whitespace-nowrap bg-transparent text-slate-700"
           }
         >
-          {googleUser?.email}
+          {googleUser?.email || user?.email}
         </p>
         <div className="h-0 my-2 border border-solid border-blueGray-100" />
         <div className="flex justify-center py-2">

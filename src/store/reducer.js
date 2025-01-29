@@ -1,5 +1,6 @@
 import {
   FETCH_CUSTOMERS,
+  FETCH_ORDERS,
   FETCH_REVIEWS,
   FETCH_SERVICES,
   FETCH_SHOWCASES,
@@ -30,12 +31,17 @@ export const initialState = {
     loading: false,
     error: null,
   },
+  orders: {
+    data: [],
+    loading: false,
+    error: null,
+  },
   users: {
     data: [],
     loading: false,
     error: null,
   },
-  apiUrl: "http://localhost:9000",
+  apiUrl: "https://cleaning-service-server-one.vercel.app",
 };
 
 const reducer = (state, action) => {
@@ -44,6 +50,11 @@ const reducer = (state, action) => {
       return {
         ...state,
         customers: { data: action.payload, loading: false, error: null },
+      };
+    case FETCH_ORDERS:
+      return {
+        ...state,
+        orders: { data: action.payload, loading: false, error: null },
       };
     case FETCH_USERS:
       return {

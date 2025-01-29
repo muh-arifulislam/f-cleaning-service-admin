@@ -30,28 +30,27 @@ export default function Login() {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data?.accessToken) {
-          localStorage.setItem("accessToken", data.accessToken);
+        if (data.success) {
+          localStorage.setItem("accessToken", data.data?.accessToken);
           toast.update(id, {
             render: "Login successful.",
             type: "success",
             isLoading: false,
+            autoClose: 3000,
+            closeButton: true,
           });
           navigate("/");
         } else {
-          toast.update(id, {
-            render: "Something went wrong.",
-            type: "error",
-            isLoading: false,
-          });
+          throw new Error("Failed to login...!");
         }
       })
       .catch((err) => {
-        console.log(err);
         toast.update(id, {
-          render: "Something went wrong.",
+          render: err?.message,
           type: "error",
           isLoading: false,
+          autoClose: 3000,
+          closeButton: true,
         });
       });
   };
@@ -76,8 +75,8 @@ export default function Login() {
           })
             .then((res) => res.json())
             .then((data) => {
-              if (data?.accessToken) {
-                localStorage.setItem("accessToken", data.accessToken);
+              if (data.success) {
+                localStorage.setItem("accessToken", data.data?.accessToken);
                 toast.update(id, {
                   render: "Login successful!",
                   type: "success",
@@ -87,21 +86,16 @@ export default function Login() {
                 });
                 navigate("/");
               } else {
-                toast.update(id, {
-                  render: "Failed to login...!",
-                  type: "error",
-                  isLoading: false,
-                  autoClose: 3000,
-                  closeButton: true,
-                });
+                throw new Error("Failed to login");
               }
             })
             .catch((err) => {
-              console.log(err);
               toast.update(id, {
-                render: "Something went wrong.",
+                render: err?.message,
                 type: "error",
                 isLoading: false,
+                autoClose: 3000,
+                closeButton: true,
               });
             });
         }

@@ -36,7 +36,7 @@ const ModalAddShowcase = ({
 
       const resData = await res.json();
 
-      if (!res.ok) throw new Error(resData.message || "Upload failed!");
+      if (!res.success) throw new Error(resData.message || "Upload failed!");
       toast.update(id, {
         render: "Showcase uploaded successfully!",
         type: "success",

@@ -16,7 +16,7 @@ const DropdownTableUser = ({ user, googleUser }) => {
   const popoverDropdownRef = React.createRef();
   const { modalIsOpen, setModalIsOpen, closeModal } = useModal(false);
 
-  const removeUsers = () => {
+  const removeUser = () => {
     fetch(`${apiUrl}/users/${user._id}`, {
       method: "DELETE",
       headers: {
@@ -26,12 +26,15 @@ const DropdownTableUser = ({ user, googleUser }) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.deletedCount > 0) {
+        if (data.success) {
           const filteredUsers = users?.data.filter(
             (item) => item._id !== user._id
           );
+
           dispatch({ type: FETCH_USERS, payload: filteredUsers });
           toast.success("successfully deleted.");
+        } else {
+          throw new Error("Failed to delete User");
         }
       })
       .catch((err) => console.log(err));
@@ -79,7 +82,7 @@ const DropdownTableUser = ({ user, googleUser }) => {
       <ModalConfirmation
         isOpen={modalIsOpen}
         closeModal={closeModal}
-        action={removeUsers}
+        action={removeUser}
       />
     </>
   );

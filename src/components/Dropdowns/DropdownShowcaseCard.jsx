@@ -39,7 +39,7 @@ const DropdownShowcaseCard = ({
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.deletedCount) {
+        if (data.success) {
           setDropdownPopoverShow(false);
           const filteredShowcases = showcases.data.filter(
             (item) => item._id !== showcase._id

@@ -21,8 +21,13 @@ const RequireAdmin = ({ children }) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setUser(data);
-        setFetchLoading(false);
+        if (data.success) {
+          setUser(data.data);
+          setFetchLoading(false);
+        } else {
+          setFetchLoading(false);
+          throw new Error("failed to load data...!");
+        }
       })
       .catch((error) => toast.error(error.message));
   }, [googleUser]);

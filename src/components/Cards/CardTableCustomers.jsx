@@ -5,7 +5,6 @@ import useModal from "../../hooks/useModal";
 // components
 
 import DropdownTableCustomer from "../Dropdowns/DropdownTableCustomer";
-import ModalAddCustomer from "../Modals/ModalAddCustomer";
 import TableLoader from "../Loader/TableLoader";
 import ButtonRefresh from "../Buttons/ButtonRefresh";
 import { FaCircle, FaUser } from "react-icons/fa";
@@ -34,7 +33,11 @@ export default function CardTableCustomers({ color }) {
     })
       .then((res) => res.json())
       .then((data) => {
-        dispatch({ type: FETCH_CUSTOMERS, payload: data });
+        if (data.success) {
+          dispatch({ type: FETCH_CUSTOMERS, payload: data.data });
+        } else {
+          throw new Error("Failed to load customers...!");
+        }
       })
       .catch((error) =>
         dispatch({ type: SET_ERROR, target: "customers", payload: error })
@@ -72,17 +75,7 @@ export default function CardTableCustomers({ color }) {
               {dayjs(customer.createdAt).format("DD/MM/YYYY, h:mm A")}
             </td>
             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-              {customer.status ? (
-                <>
-                  <FaCircle className="text-green-500 mr-2 inline" />
-                  <span className="font-medium">seen</span>
-                </>
-              ) : (
-                <>
-                  <FaCircle className="text-red-500 mr-2 inline" />
-                  <span className="font-medium">unseen</span>
-                </>
-              )}
+              {customer?.orders?.length}
             </td>
             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-right relative">
               <DropdownTableCustomer
@@ -116,12 +109,6 @@ export default function CardTableCustomers({ color }) {
             </div>
             <div>
               <ButtonRefresh onClick={handleRefresh} />
-              <button
-                onClick={() => openModal()}
-                className="bg-tertiary px-5 py-1 font-medium text-md rounded"
-              >
-                Add New Customer
-              </button>
             </div>
           </div>
         </div>
@@ -188,7 +175,7 @@ export default function CardTableCustomers({ color }) {
                       : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                   }
                 >
-                  Staus
+                  Orders
                 </th>
                 <th
                   className={
@@ -204,7 +191,6 @@ export default function CardTableCustomers({ color }) {
           </table>
         </div>
       </div>
-      <ModalAddCustomer isOpen={modalIsOpen} closeModal={closeModal} />
     </>
   );
 }

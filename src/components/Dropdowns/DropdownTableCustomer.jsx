@@ -22,55 +22,6 @@ const DropdownTableCustomer = ({ customer, googleUser }) => {
     setModalIsOpen(false);
   };
 
-  const removeCustomers = () => {
-    fetch(`${apiUrl}/customers/${customer._id}`, {
-      method: "DELETE",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.deletedCount > 0) {
-          const filteredCustomers = customers?.data.filter(
-            (item) => item._id !== customer._id
-          );
-          dispatch({ type: FETCH_CUSTOMERS, payload: filteredCustomers });
-          toast.success("successfully deleted.");
-        }
-        console.log(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
-  const updateCustomer = () => {
-    const doc = { ...customer, status: true };
-    fetch(`${apiUrl}/customers/${customer._id}`, {
-      method: "PUT",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-      body: JSON.stringify(doc),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.acknowledgement) {
-          const filteredCustomers = customers?.data.filter(
-            (item) => item._id !== customer._id
-          );
-          dispatch({
-            type: FETCH_CUSTOMERS,
-            payload: [...filteredCustomers, data.data],
-          });
-          toast.success("successfully updated the status.");
-        }
-      });
-  };
-
   return (
     <>
       <a
@@ -99,10 +50,9 @@ const DropdownTableCustomer = ({ customer, googleUser }) => {
           onClick={(e) => {
             setDropdownPopoverShow(false);
             e.preventDefault();
-            updateCustomer();
           }}
         >
-          Modify Customer
+          Action One
         </a>
 
         <a
@@ -116,13 +66,13 @@ const DropdownTableCustomer = ({ customer, googleUser }) => {
             setDropdownPopoverShow(false);
           }}
         >
-          Remove Customer
+          Action two
         </a>
       </div>
       <ModalConfirmation
         isOpen={modalIsOpen}
         closeModal={closeModal}
-        action={removeCustomers}
+        action={() => {}}
       />
     </>
   );

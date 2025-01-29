@@ -2,28 +2,20 @@ import React from "react";
 import PropTypes from "prop-types";
 
 // components
-import DropdownTableUser from "../Dropdowns/DropdownTableUser";
-import ModalAddUser from "../Modals/ModalAddUser";
-import CardTableError from "../Cards/CardTableError";
-import useModal from "../../hooks/useModal";
-import { useGlobalStore } from "../../store/GlobalStoreContext";
-import { useAuthState } from "react-firebase-hooks/auth";
-import auth from "../../firebase.init";
-import {
-  SET_LOADING,
-  SET_ERROR,
-  FETCH_USERS,
-} from "../../store/actionTypes.js";
 import TableLoader from "../Loader/TableLoader";
+import ButtonRefresh from "../Buttons/ButtonRefresh";
 import { FaUser } from "react-icons/fa";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_ORDERS, SET_ERROR, SET_LOADING } from "../../store/actionTypes";
+import CardTableError from "./CardTableError";
+import dayjs from "dayjs";
+import DropdownTableOrder from "../Dropdowns/DropdownTableOrder";
 
-export default function CardTableUsers({ color }) {
-  const { users, dispatch, apiUrl } = useGlobalStore();
-  const [googleUser, googleLoading, googleRrror] = useAuthState(auth);
-  const { modalIsOpen, closeModal, openModal } = useModal(false);
+export default function CardTableOrders({ color }) {
+  const { orders, dispatch, apiUrl } = useGlobalStore();
   const handleRefresh = () => {
-    dispatch({ type: SET_LOADING, target: "users" });
-    fetch(`${apiUrl}/users`, {
+    dispatch({ type: SET_LOADING, target: "orders" });
+    fetch(`${apiUrl}/orders`, {
       method: "GET",
       headers: {
         authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -32,44 +24,51 @@ export default function CardTableUsers({ color }) {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          dispatch({ type: FETCH_USERS, payload: data.data });
+          dispatch({ type: FETCH_ORDERS, payload: data.data });
         } else {
-          throw new Error("failed to fetch user data...!");
+          throw new Error("Failed to load customers...!");
         }
       })
       .catch((error) =>
-        dispatch({ type: SET_ERROR, target: "users", payload: error.message })
+        dispatch({ type: SET_ERROR, target: "orders", payload: error })
       );
   };
-  if (users.loading) {
+  if (orders.loading) {
     return <TableLoader />;
   }
-  if (users.error) {
-    return <CardTableError error={users.error} />;
+  if (orders.error) {
+    return <CardTableError error={orders.error} />;
   }
+
   let content = (
     <>
-      {users?.data
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .map((user) => (
-          <tr key={user._id} className="font-semibold border-b">
+      {orders?.data
+        ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map((order) => (
+          <tr key={order._id} className="font-semibold border-b">
             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
               <div className="flex items-center gap-x-3">
                 <FaUser className="text-lg" />
-                <span>{user.name}</span>
+                <span>{order.name}</span>
               </div>
             </td>
             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-              {user.phone}
+              {order.phone}
             </td>
             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-              {user.email}
+              {order.email}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs flex-wrap p-4 ">
+              {order.address}
             </td>
             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-              {user.role}
+              {dayjs(order.createdAt).format("DD/MM/YYYY, h:mm A")}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              {order?.status}
             </td>
             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-right relative">
-              <DropdownTableUser user={user} googleUser={googleUser} />
+              <DropdownTableOrder order={order} />
             </td>
           </tr>
         ))}
@@ -92,22 +91,11 @@ export default function CardTableUsers({ color }) {
                   (color === "light" ? "text-blueGray-700" : "text-white")
                 }
               >
-                Users
+                Orders
               </h3>
             </div>
             <div>
-              <button
-                onClick={() => handleRefresh()}
-                className="bg-slate-200 px-5 py-1 mr-5 font-medium text-md rounded"
-              >
-                Refresh
-              </button>
-              <button
-                onClick={() => openModal()}
-                className="bg-tertiary px-5 py-1 font-medium text-md rounded"
-              >
-                Add User
-              </button>
+              <ButtonRefresh onClick={handleRefresh} />
             </div>
           </div>
         </div>
@@ -154,7 +142,27 @@ export default function CardTableUsers({ color }) {
                       : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                   }
                 >
-                  Role
+                  Address
+                </th>
+                <th
+                  className={
+                    "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                    (color === "light"
+                      ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                      : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                  }
+                >
+                  Date
+                </th>
+                <th
+                  className={
+                    "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
+                    (color === "light"
+                      ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                      : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
+                  }
+                >
+                  Status
                 </th>
                 <th
                   className={
@@ -166,23 +174,18 @@ export default function CardTableUsers({ color }) {
                 ></th>
               </tr>
             </thead>
-            <tbody>{users?.loading ? <TableLoader /> : content}</tbody>
+            <tbody>{orders?.loading ? <TableLoader /> : content}</tbody>
           </table>
         </div>
       </div>
-      <ModalAddUser
-        isOpen={modalIsOpen}
-        closeModal={closeModal}
-        googleUser={googleUser}
-      />
     </>
   );
 }
 
-CardTableUsers.defaultProps = {
+CardTableOrders.defaultProps = {
   color: "light",
 };
 
-CardTableUsers.propTypes = {
+CardTableOrders.propTypes = {
   color: PropTypes.oneOf(["light", "dark"]),
 };

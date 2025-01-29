@@ -32,13 +32,18 @@ const DropdownTableReview = ({ review, googleUser }) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.deletedCount > 0) {
+        if (data.success) {
           const filteredReviews = reviews?.data?.filter(
             (item) => item._id !== review._id
           );
           dispatch({ type: FETCH_REVIEWS, payload: filteredReviews });
           toast.success("successfully deleted.");
+        } else {
+          throw new Error("Failed to remove review...!");
         }
+      })
+      .catch((err) => {
+        toast.error(err?.message);
       });
   };
 
@@ -54,7 +59,7 @@ const DropdownTableReview = ({ review, googleUser }) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.acknowledgement) {
+        if (data.success) {
           const filteredReviews = reviews?.data?.filter(
             (item) => item._id !== review._id
           );
@@ -63,9 +68,15 @@ const DropdownTableReview = ({ review, googleUser }) => {
             payload: [data.data, ...filteredReviews],
           });
           toast.success("successfully updated the status.");
+        } else {
+          throw new Error("Failed to update review...!");
         }
+      })
+      .catch((err) => {
+        toast.error(err?.message);
       });
   };
+
   return (
     <>
       <a

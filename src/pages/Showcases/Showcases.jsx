@@ -40,7 +40,11 @@ const AdminShowcase = () => {
     fetch(`${apiUrl}/showcases`)
       .then((res) => res.json())
       .then((data) => {
-        dispatch({ type: FETCH_SHOWCASES, payload: data });
+        if (data.success) {
+          dispatch({ type: FETCH_SHOWCASES, payload: data.data });
+        } else {
+          throw new Error("failed to load data...!");
+        }
       })
       .catch((error) =>
         dispatch({

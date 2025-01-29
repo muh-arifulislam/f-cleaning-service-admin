@@ -33,7 +33,11 @@ export default function CardTable({ color }) {
     fetch(`${apiUrl}/reviews`)
       .then((res) => res.json())
       .then((data) => {
-        dispatch({ type: FETCH_REVIEWS, payload: data });
+        if (data.success) {
+          dispatch({ type: FETCH_REVIEWS, payload: data.data });
+        } else {
+          throw new Error("Failed to load reviews...!");
+        }
       })
       .catch((error) =>
         dispatch({ type: SET_ERROR, target: "reviews", payload: error.message })

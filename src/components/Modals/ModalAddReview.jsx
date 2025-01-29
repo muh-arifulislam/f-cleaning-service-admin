@@ -17,6 +17,7 @@ const ModalAddReview = ({ isOpen, closeModal }) => {
     formState: { errors },
   } = useForm();
   const onSubmit = (data) => {
+    reset();
     closeModal();
     fetch(`${apiUrl}/reviews`, {
       method: "POST",
@@ -27,21 +28,19 @@ const ModalAddReview = ({ isOpen, closeModal }) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.acknowledgement) {
-          reset();
+        if (data.success) {
           toast.success("review added successfull!!!");
           dispatch({
             type: FETCH_REVIEWS,
-            payload: [data.review, ...reviews.data],
+            payload: [data.data, ...reviews.data],
           });
         } else {
-          if (data?.error?.code === 11000) {
-            toast.warning("phone number already used!!!");
-            reset();
-          }
+          throw new Error("Failed to add review...!");
         }
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        toast.error(error?.message);
+      });
   };
   return (
     <div className={modalClasses}>

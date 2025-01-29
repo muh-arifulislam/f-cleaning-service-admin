@@ -10,17 +10,15 @@ import {
 import { FiLogOut } from "react-icons/fi";
 import { MdAdminPanelSettings } from "react-icons/md";
 import { BiCommentCheck } from "react-icons/bi";
-import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
+import { useSignOut } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
 import DropdownUser from "../../components/Dropdowns/DropdownUser";
-import { useGlobalStore } from "../../store/GlobalStoreContext";
+
+import { jwtDecode } from "jwt-decode";
 
 const Sidebar = () => {
-  const [googleUser, googleLoading, googleError] = useAuthState(auth);
-  const { apiUrl } = useGlobalStore();
-  const [users, setUsers] = useState(null);
   const [collapseShow, setCollapseShow] = useState("hidden");
-  const [signOut, loading, error] = useSignOut(auth);
+  const [signOut] = useSignOut(auth);
 
   const navigate = useNavigate();
   const handleSignOut = async () => {
@@ -31,24 +29,16 @@ const Sidebar = () => {
 
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const accessToken = localStorage.getItem("accessToken");
   useEffect(() => {
-    if (googleUser && users?.length > 0) {
-      setIsAdmin(true);
+    if (accessToken) {
+      const decoded = jwtDecode(accessToken);
+      if (decoded?.role === "admin") {
+        setIsAdmin(true);
+      }
     }
-  }, [googleUser, users]);
+  }, [accessToken]);
 
-  useEffect(() => {
-    fetch(`${apiUrl}/users`, {
-      headers: {
-        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
-      })
-      .catch((error) => console.log(error));
-  }, [googleUser]);
   return (
     <>
       <nav className="md:left-0 md:block md:fixed md:top-0 md:bottom-0 md:overflow-y-auto md:flex-row md:flex-nowrap md:overflow-hidden shadow-xl bg-white flex flex-wrap items-center justify-between relative md:w-64 z-10 py-4 px-6">
@@ -64,7 +54,7 @@ const Sidebar = () => {
           {/* Brand */}
           <a
             className="md:block text-left md:pb-2 text-blueGray-600 mr-0 inline-block whitespace-nowrap text-sm font-bold p-4 px-0"
-            href="http://gocleanix.com/"
+            href="https://gocleanix.netlify.app/"
             target="_blank"
             rel="noreferrer"
           >
@@ -144,6 +134,23 @@ const Sidebar = () => {
                     <FaChartLine className="text-lg inline" />
                   </span>
                   <span className="">Dashboard</span>
+                </Link>
+              </li>
+              <li className="items-center">
+                <Link
+                  onClick={() => setCollapseShow("hidden")}
+                  className={
+                    "text-xs uppercase py-3 font-bold flex items-center justify-start " +
+                    (window.location.href.indexOf("/admin/order") !== -1
+                      ? "text-lightBlue-500 hover:text-lightBlue-600"
+                      : "text-blueGray-700 hover:text-blueGray-500")
+                  }
+                  to="/admin/order"
+                >
+                  <span className="mr-2">
+                    <FaUserCheck className="text-lg inline" />
+                  </span>
+                  <span className="">Orders</span>
                 </Link>
               </li>
               <li className="items-center">

@@ -4,6 +4,7 @@ import { useContext } from "react";
 import { createContext } from "react";
 import {
   FETCH_CUSTOMERS,
+  FETCH_ORDERS,
   FETCH_USERS,
   FETCH_REVIEWS,
   FETCH_SERVICES,
@@ -24,6 +25,8 @@ const GlobalStoreProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [googleUser, loading, error] = useAuthState(auth);
 
+  const accessToken = localStorage.getItem("accessToken");
+
   const fetchProtectedData = async (target, type, url) => {
     dispatch({ type: SET_LOADING, target: target });
     try {
@@ -33,46 +36,60 @@ const GlobalStoreProvider = ({ children }) => {
         },
       });
       let data = await response.json();
-      if (data.message) {
-        throw new Error(data.message);
+      if (data.success) {
+        dispatch({ type: type, payload: data.data });
+      } else {
+        throw new Error("Failed to load data...!");
       }
-      dispatch({ type: type, target: target, payload: data });
     } catch (err) {
       dispatch({ type: SET_ERROR, target: target, payload: err.message });
     }
   };
+
   const fetchData = async (target, type, url) => {
     try {
       dispatch({ type: SET_LOADING, target });
       // Fetch data
       const response = await fetch(url);
       const data = await response.json();
-      dispatch({ type: type, payload: data });
+
+      if (data.success) {
+        dispatch({ type: type, payload: data.data });
+      } else {
+        dispatch({
+          type: SET_ERROR,
+          target,
+          payload: "Failed to load data...!",
+        });
+      }
     } catch (error) {
       dispatch({ type: SET_ERROR, target, payload: error.message });
     }
   };
+
   useEffect(() => {
-    fetchData("services", FETCH_SERVICES, "http://localhost:9000/services");
-    fetchData("reviews", FETCH_REVIEWS, "http://localhost:9000/reviews");
-    fetchData("showcases", FETCH_SHOWCASES, "http://localhost:9000/showcases");
+    fetchData("services", FETCH_SERVICES, state.apiUrl + "/services");
+    fetchData("reviews", FETCH_REVIEWS, state.apiUrl + "/reviews");
+    fetchData("showcases", FETCH_SHOWCASES, state.apiUrl + "/showcases");
 
     if (!loading && googleUser && localStorage.getItem("accessToken")) {
       // fetching customers data when admin user logged in
       fetchProtectedData(
         "customers",
         FETCH_CUSTOMERS,
-        `http://localhost:9000/customers`
+        state.apiUrl + "/customers"
       );
       // fetching users data when admin user logged in
-      fetchProtectedData("users", FETCH_USERS, `http://localhost:9000/users`);
+      fetchProtectedData("users", FETCH_USERS, state.apiUrl + "/users");
+      fetchProtectedData("orders", FETCH_ORDERS, state.apiUrl + "/orders");
     }
-  }, [googleUser, loading]);
+  }, [googleUser, loading, accessToken]);
 
   return (
     <GlobalStoreContext.Provider
       value={{
         customers: state.customers,
+        orders: state.orders,
         users: state.users,
         services: state.services,
         reviews: state.reviews,

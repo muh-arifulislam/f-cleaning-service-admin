@@ -14,6 +14,7 @@ import Login from "../pages/Auth/Login";
 
 import RequireAuth from "../authentication/RequireAuth.jsx";
 import RequireAdmin from "../authentication/RequireAdmin.jsx";
+import Orders from "../pages/Orders/Orders.jsx";
 
 const routes = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const routes = createBrowserRouter([
       {
         path: "customer",
         element: <Customers />,
+      },
+      {
+        path: "order",
+        element: <Orders />,
       },
       {
         path: "review",

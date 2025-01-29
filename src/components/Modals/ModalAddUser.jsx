@@ -26,15 +26,11 @@ const ModalAddUser = ({ isOpen, closeModal, googleUser }) => {
       .then((res) => res.json())
       .then((data) => {
         reset();
-        if (data.error) {
-          if (data.error.code === 11000) {
-            throw new Error("phone number or email already used!!");
-          }
-        }
-        if (data.acknowledgement) {
-          reset();
+        if (data.success) {
           toast.success("customer added successfull!!!");
-          dispatch({ type: FETCH_USERS, payload: [data.user, ...users.data] });
+          dispatch({ type: FETCH_USERS, payload: [data.data, ...users.data] });
+        } else {
+          throw new Error("failed to add user");
         }
       })
       .catch((error) => toast.error(error.message));

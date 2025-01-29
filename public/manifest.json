@@ -1,24 +1,15 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Go Cleanix",
+  "name": "gocleanix.com",
+  "description": "Professional cleaning services in Muscat, Oman. We offer top-quality cleaning solutions for homes and businesses. Contact us for a clean and healthy environment.",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
-    },
-    {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "https://gocleanix.com/",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"

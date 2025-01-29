@@ -2,6 +2,7 @@ export const FETCH_SERVICES = "FETCH_SERVICES";
 export const FETCH_REVIEWS = "FETCH_REVIEWS";
 export const FETCH_SHOWCASES = "FETCH_SHOWCASES";
 export const FETCH_CUSTOMERS = "FETCH_CUSTOMERS";
+export const FETCH_ORDERS = "FETCH_ORDERS";
 export const FETCH_USERS = "FETCH_USERS";
 export const SET_LOADING = "SET_LOADING";
 export const SET_ERROR = "SET_ERROR";
