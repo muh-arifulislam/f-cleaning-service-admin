@@ -1,8 +1,11 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_CUSTOMERS } from "../../store/actionTypes";
 
-const ModalAddCustomer = ({ isOpen, closeModal, customers, setCustomers }) => {
+const ModalAddCustomer = ({ isOpen, closeModal }) => {
+  const { customers, dispatch, apiUrl } = useGlobalStore();
   const {
     register,
     handleSubmit,
@@ -12,7 +15,7 @@ const ModalAddCustomer = ({ isOpen, closeModal, customers, setCustomers }) => {
   } = useForm();
   const onSubmit = (data) => {
     closeModal();
-    fetch("http://localhost:9000/customer", {
+    fetch(`${apiUrl}/customers`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -24,12 +27,16 @@ const ModalAddCustomer = ({ isOpen, closeModal, customers, setCustomers }) => {
         if (data.acknowledgement) {
           reset();
           toast.success("customer added successfull!!!");
-          setCustomers([...customers, data.customer]);
+          dispatch({
+            type: FETCH_CUSTOMERS,
+            payload: [data.customer, ...customers.data],
+          });
         } else {
           console.log(data.error);
           // toast.error(data.error);
         }
-      });
+      })
+      .catch((error) => console.log(error.message));
   };
 
   const modalClasses = isOpen
@@ -108,7 +115,7 @@ const ModalAddCustomer = ({ isOpen, closeModal, customers, setCustomers }) => {
                 <input
                   {...register("phone", {
                     required: true,
-                    pattern: /^(9|7)\d{7}$/,
+                    pattern: /\d{8,}/,
                   })}
                   aria-invalid={errors.phone ? "true" : "false"}
                   className="w-full px-[20px] py-[15px] bg-slate-100 outline-blue-500 outline-1 rounded"
@@ -130,7 +137,7 @@ const ModalAddCustomer = ({ isOpen, closeModal, customers, setCustomers }) => {
                     },
                   })}
                   className="w-full px-[20px] py-[15px] bg-slate-100 outline-blue-500 outline-1 rounded"
-                  placeholder="Email*"
+                  placeholder="Email"
                   type="text"
                 />
               </div>

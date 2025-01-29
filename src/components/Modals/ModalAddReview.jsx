@@ -1,8 +1,11 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_REVIEWS } from "../../store/actionTypes";
 
-const ModalAddReview = ({ isOpen, closeModal, reviews, setReviews }) => {
+const ModalAddReview = ({ isOpen, closeModal }) => {
+  const { reviews, dispatch, apiUrl } = useGlobalStore();
   const modalClasses = isOpen
     ? "fixed inset-0 flex items-center justify-center z-50"
     : "hidden";
@@ -15,7 +18,7 @@ const ModalAddReview = ({ isOpen, closeModal, reviews, setReviews }) => {
   } = useForm();
   const onSubmit = (data) => {
     closeModal();
-    fetch("http://localhost:9000/review", {
+    fetch(`${apiUrl}/reviews`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -27,28 +30,33 @@ const ModalAddReview = ({ isOpen, closeModal, reviews, setReviews }) => {
         if (data.acknowledgement) {
           reset();
           toast.success("review added successfull!!!");
-          console.log(data.review);
-          setReviews([...reviews, data.review]);
+          dispatch({
+            type: FETCH_REVIEWS,
+            payload: [data.review, ...reviews.data],
+          });
         } else {
-          console.log(data.error);
-          // toast.error(data.error);
+          if (data?.error?.code === 11000) {
+            toast.warning("phone number already used!!!");
+            reset();
+          }
         }
-      });
+      })
+      .catch((error) => console.log(error));
   };
   return (
     <div className={modalClasses}>
       <div className="modal-overlay fixed inset-0 bg-black opacity-50"></div>
       <div className="modal-container bg-white w-full lg:md:max-w-md max-w-xs mx-auto rounded shadow-lg z-50 ">
         {/* Modal content goes here */}
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+        <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
           <div className="flex px-3 pt-3">
             <button
               onClick={() => closeModal()}
               type="button"
-              class=" text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+              className=" text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
             >
               <svg
-                class="w-3 h-3"
+                className="w-3 h-3"
                 aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -56,16 +64,16 @@ const ModalAddReview = ({ isOpen, closeModal, reviews, setReviews }) => {
               >
                 <path
                   stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                 />
               </svg>
-              <span class="sr-only">Close modal</span>
+              <span className="sr-only">Close modal</span>
             </button>
           </div>
-          <div class="p-6 text-center">
+          <div className="p-6 text-center">
             <form onSubmit={handleSubmit(onSubmit)} action="" className="">
               <div className="mb-2">
                 <input
@@ -77,7 +85,7 @@ const ModalAddReview = ({ isOpen, closeModal, reviews, setReviews }) => {
                 />
                 {errors.name?.type === "required" && (
                   <p role="alert" className="pt-2 text-red-500">
-                    Error !! First name is required
+                    Error !! Name is required
                   </p>
                 )}
               </div>
@@ -85,7 +93,7 @@ const ModalAddReview = ({ isOpen, closeModal, reviews, setReviews }) => {
                 <input
                   {...register("phone", {
                     required: true,
-                    pattern: /^(9|7)\d{7}$/,
+                    pattern: /\d{8,}/,
                   })}
                   aria-invalid={errors.phone ? "true" : "false"}
                   className="w-full px-[20px] py-[15px] bg-slate-100 outline-blue-500 outline-1 rounded"
@@ -107,7 +115,7 @@ const ModalAddReview = ({ isOpen, closeModal, reviews, setReviews }) => {
                     },
                   })}
                   className="w-full px-[20px] py-[15px] bg-slate-100 outline-blue-500 outline-1 rounded"
-                  placeholder="Email*"
+                  placeholder="Email"
                   type="text"
                 />
               </div>
@@ -118,7 +126,7 @@ const ModalAddReview = ({ isOpen, closeModal, reviews, setReviews }) => {
                   })}
                   aria-invalid={errors.testimonial ? "true" : "false"}
                   className="w-full px-[20px] py-[15px] bg-slate-100 outline-blue-500 outline-1 rounded"
-                  placeholder="Address*"
+                  placeholder="Testimonail*"
                   type="text"
                 />
                 {errors.testimonial?.type === "required" && (

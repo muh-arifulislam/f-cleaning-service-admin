@@ -1,8 +1,11 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_USERS } from "../../store/actionTypes";
 
-const ModalAddUser = ({ isOpen, closeModal, users, setUsers }) => {
+const ModalAddUser = ({ isOpen, closeModal, googleUser }) => {
+  const { users, dispatch, apiUrl } = useGlobalStore();
   const {
     register,
     handleSubmit,
@@ -12,24 +15,29 @@ const ModalAddUser = ({ isOpen, closeModal, users, setUsers }) => {
   } = useForm();
   const onSubmit = (data) => {
     closeModal();
-    fetch("http://localhost:9000/user", {
+    fetch(`${apiUrl}/users`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((data) => {
+        reset();
+        if (data.error) {
+          if (data.error.code === 11000) {
+            throw new Error("phone number or email already used!!");
+          }
+        }
         if (data.acknowledgement) {
           reset();
           toast.success("customer added successfull!!!");
-          setUsers([...users, data.user]);
-        } else {
-          console.log(data.error);
-          // toast.error(data.error);
+          dispatch({ type: FETCH_USERS, payload: [data.user, ...users.data] });
         }
-      });
+      })
+      .catch((error) => toast.error(error.message));
   };
 
   const modalClasses = isOpen
@@ -41,15 +49,15 @@ const ModalAddUser = ({ isOpen, closeModal, users, setUsers }) => {
       <div className="modal-overlay fixed inset-0 bg-black opacity-50"></div>
       <div className="modal-container bg-white w-full lg:md:max-w-md max-w-xs mx-auto rounded shadow-lg z-50 ">
         {/* Modal content goes here */}
-        <div class="relative bg-white rounded-lg dark:bg-gray-700">
+        <div className="relative bg-white rounded-lg dark:bg-gray-700">
           <div className="flex px-3 pt-3">
             <button
               onClick={() => closeModal()}
               type="button"
-              class=" text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+              className=" text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
             >
               <svg
-                class="w-3 h-3"
+                className="w-3 h-3"
                 aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -57,16 +65,16 @@ const ModalAddUser = ({ isOpen, closeModal, users, setUsers }) => {
               >
                 <path
                   stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                 />
               </svg>
-              <span class="sr-only">Close modal</span>
+              <span className="sr-only">Close modal</span>
             </button>
           </div>
-          <div class="m-6 lg:md:p-[40px] p-5 border text-center">
+          <div className="m-6 lg:md:p-[40px] p-5 border text-center">
             <div className="relative pb-4 mb-8">
               <h4 className="text-xl font-semibold">
                 Please Fill Information !!
@@ -92,7 +100,7 @@ const ModalAddUser = ({ isOpen, closeModal, users, setUsers }) => {
                 <input
                   {...register("phone", {
                     required: true,
-                    pattern: /^(9|7)\d{7}$/,
+                    pattern: /\d{8,}/,
                   })}
                   aria-invalid={errors.phone ? "true" : "false"}
                   className="w-full px-[20px] py-[15px] bg-slate-100 outline-blue-500 outline-1 rounded"
@@ -108,15 +116,21 @@ const ModalAddUser = ({ isOpen, closeModal, users, setUsers }) => {
               <div className="mb-2">
                 <input
                   {...register("email", {
-                    required: false,
+                    required: true,
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     },
                   })}
+                  aria-invalid={errors.email ? "true" : "false"}
                   className="w-full px-[20px] py-[15px] bg-slate-100 outline-blue-500 outline-1 rounded"
                   placeholder="Email*"
                   type="text"
                 />
+                {errors.email?.type === "required" && (
+                  <p role="alert" className="pt-2 text-red-500">
+                    Error !! Email is required
+                  </p>
+                )}
               </div>
               <div className="mb-2">
                 <select

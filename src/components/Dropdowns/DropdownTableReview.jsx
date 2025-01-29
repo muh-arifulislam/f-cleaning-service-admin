@@ -3,8 +3,11 @@ import { FaEllipsisV } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import ModalConfirmation from "../Modals/ModalConfirmation";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_REVIEWS } from "../../store/actionTypes";
 
-const DropdownTableReview = ({ review, reviews, setReviews }) => {
+const DropdownTableReview = ({ review, googleUser }) => {
+  const { reviews, dispatch, apiUrl } = useGlobalStore();
   // dropdown props
   const [dropdownPopoverShow, setDropdownPopoverShow] = React.useState(false);
   const btnDropdownRef = React.createRef();
@@ -18,40 +21,47 @@ const DropdownTableReview = ({ review, reviews, setReviews }) => {
   const closeModal = () => {
     setModalIsOpen(false);
   };
+
   const removeReview = () => {
-    fetch(`http://localhost:9000/review/${review._id}`, {
+    fetch(`${apiUrl}/reviews/${review._id}`, {
       method: "DELETE",
       headers: {
         "content-type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.deletedCount > 0) {
-          const filteredReviews = reviews.filter(
+          const filteredReviews = reviews?.data?.filter(
             (item) => item._id !== review._id
           );
-          setReviews(filteredReviews);
+          dispatch({ type: FETCH_REVIEWS, payload: filteredReviews });
           toast.success("successfully deleted.");
         }
       });
   };
+
   const updateReview = () => {
     const doc = { ...review, status: !review.status };
-    fetch(`http://localhost:9000/review/${review._id}`, {
+    fetch(`${apiUrl}/reviews/${review._id}`, {
       method: "PUT",
       headers: {
         "content-type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
       body: JSON.stringify(doc),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.acknowledgement) {
-          const filteredReviews = reviews.filter(
+          const filteredReviews = reviews?.data?.filter(
             (item) => item._id !== review._id
           );
-          setReviews([...filteredReviews, data.data]);
+          dispatch({
+            type: FETCH_REVIEWS,
+            payload: [data.data, ...filteredReviews],
+          });
           toast.success("successfully updated the status.");
         }
       });

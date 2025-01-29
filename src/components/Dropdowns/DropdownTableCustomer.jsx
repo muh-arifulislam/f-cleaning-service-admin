@@ -3,8 +3,11 @@ import { FaEllipsisV } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import ModalConfirmation from "../Modals/ModalConfirmation";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_CUSTOMERS } from "../../store/actionTypes";
 
-const DropdownTableCustomer = ({ customer, customers, setCustomers }) => {
+const DropdownTableCustomer = ({ customer, googleUser }) => {
+  const { customers, dispatch, apiUrl } = useGlobalStore();
   // dropdown props
   const [dropdownPopoverShow, setDropdownPopoverShow] = React.useState(false);
   const btnDropdownRef = React.createRef();
@@ -18,44 +21,56 @@ const DropdownTableCustomer = ({ customer, customers, setCustomers }) => {
   const closeModal = () => {
     setModalIsOpen(false);
   };
+
   const removeCustomers = () => {
-    fetch(`http://localhost:9000/customer/${customer._id}`, {
+    fetch(`${apiUrl}/customers/${customer._id}`, {
       method: "DELETE",
       headers: {
         "content-type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.deletedCount > 0) {
-          const filteredCustomers = customers.filter(
+          const filteredCustomers = customers?.data.filter(
             (item) => item._id !== customer._id
           );
-          setCustomers(filteredCustomers);
+          dispatch({ type: FETCH_CUSTOMERS, payload: filteredCustomers });
           toast.success("successfully deleted.");
         }
+        console.log(data);
+      })
+      .catch((error) => {
+        console.log(error);
       });
   };
+
   const updateCustomer = () => {
     const doc = { ...customer, status: true };
-    fetch(`http://localhost:9000/customer/${customer._id}`, {
+    fetch(`${apiUrl}/customers/${customer._id}`, {
       method: "PUT",
       headers: {
         "content-type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
       body: JSON.stringify(doc),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.acknowledgement) {
-          const filteredCustomers = customers.filter(
+          const filteredCustomers = customers?.data.filter(
             (item) => item._id !== customer._id
           );
-          setCustomers([...filteredCustomers, data.data]);
+          dispatch({
+            type: FETCH_CUSTOMERS,
+            payload: [...filteredCustomers, data.data],
+          });
           toast.success("successfully updated the status.");
         }
       });
   };
+
   return (
     <>
       <a

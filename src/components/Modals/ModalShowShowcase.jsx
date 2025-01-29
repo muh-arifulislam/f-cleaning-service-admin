@@ -1,14 +1,16 @@
 import React from "react";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
 
-const ModalShowReview = ({ isOpen, closeModal, children }) => {
+const ModalShowShowcase = ({ isOpen, closeModal, img }) => {
+  const { apiUrl } = useGlobalStore();
   const modalClasses = isOpen
     ? "fixed inset-0 flex items-center justify-center z-50"
     : "hidden";
+
   return (
     <div className={modalClasses}>
       <div className="modal-overlay fixed inset-0 bg-black opacity-50"></div>
-      <div className="modal-container bg-white w-3/4 md:max-w-md mx-auto rounded shadow-lg z-50 ">
-        {/* Modal content goes here */}
+      <div className="modal-container bg-white w-full lg:md:max-w-lg max-w-xs mx-auto rounded shadow-lg z-50">
         <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
           <button
             onClick={() => closeModal()}
@@ -32,11 +34,16 @@ const ModalShowReview = ({ isOpen, closeModal, children }) => {
             </svg>
             <span className="sr-only">Close modal</span>
           </button>
-          <div className="p-6 text-center">{children}</div>
+          <div className="p-6 text-center">
+            {/* Make this div scrollable along the y-axis */}
+            <div style={{ maxHeight: "80vh", overflowY: "auto" }}>
+              <img src={img} alt="" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default ModalShowReview;
+export default ModalShowShowcase;

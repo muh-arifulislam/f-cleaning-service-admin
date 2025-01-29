@@ -5,9 +5,9 @@ export default function AuthLayout() {
   return (
     <>
       <main>
-        <section className="relative w-full h-full py-40 min-h-screen">
+        <section className="relative w-full h-full min-h-screen flex items-center justify-center">
           <div
-            className="absolute top-0 w-full h-full bg-gray-800 bg-no-repeat bg-center"
+            className="absolute top-0 w-full h-full bg-gray-800 bg-no-repeat bg-center "
             style={{
               backgroundImage:
                 "url(" + require("../../assets/img/register_bg_2.png") + ")",

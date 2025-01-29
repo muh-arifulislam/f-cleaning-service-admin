@@ -6,10 +6,94 @@ import useModal from "../../hooks/useModal";
 
 import DropdownTableCustomer from "../Dropdowns/DropdownTableCustomer";
 import ModalAddCustomer from "../Modals/ModalAddCustomer";
-import { FaCircle } from "react-icons/fa";
+import TableLoader from "../Loader/TableLoader";
+import ButtonRefresh from "../Buttons/ButtonRefresh";
+import { FaCircle, FaUser } from "react-icons/fa";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { useAuthState } from "react-firebase-hooks/auth";
+import auth from "../../firebase.init";
+import {
+  FETCH_CUSTOMERS,
+  SET_ERROR,
+  SET_LOADING,
+} from "../../store/actionTypes";
+import CardTableError from "./CardTableError";
+import dayjs from "dayjs";
 
-export default function CardTableCustomers({ color, customers, setCustomers }) {
+export default function CardTableCustomers({ color }) {
+  const { customers, dispatch, apiUrl } = useGlobalStore();
+  const [googleUser, googleLoading, googleRrror] = useAuthState(auth);
   const { modalIsOpen, openModal, closeModal } = useModal(false);
+  const handleRefresh = () => {
+    dispatch({ type: SET_LOADING, target: "customers" });
+    fetch(`${apiUrl}/customers`, {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        dispatch({ type: FETCH_CUSTOMERS, payload: data });
+      })
+      .catch((error) =>
+        dispatch({ type: SET_ERROR, target: "customers", payload: error })
+      );
+  };
+  if (customers.loading) {
+    return <TableLoader />;
+  }
+  if (customers.error) {
+    return <CardTableError error={customers.error} />;
+  }
+
+  let content = (
+    <>
+      {customers?.data
+        ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map((customer) => (
+          <tr key={customer._id} className="font-semibold border-b">
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              <div className="flex items-center gap-x-3">
+                <FaUser className="text-lg" />
+                <span>{customer.name}</span>
+              </div>
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              {customer.phone}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              {customer.email}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs flex-wrap p-4 ">
+              {customer.address}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              {dayjs(customer.createdAt).format("DD/MM/YYYY, h:mm A")}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              {customer.status ? (
+                <>
+                  <FaCircle className="text-green-500 mr-2 inline" />
+                  <span className="font-medium">seen</span>
+                </>
+              ) : (
+                <>
+                  <FaCircle className="text-red-500 mr-2 inline" />
+                  <span className="font-medium">unseen</span>
+                </>
+              )}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-right relative">
+              <DropdownTableCustomer
+                customer={customer}
+                googleUser={googleUser}
+              />
+            </td>
+          </tr>
+        ))}
+    </>
+  );
   return (
     <>
       <div
@@ -31,6 +115,7 @@ export default function CardTableCustomers({ color, customers, setCustomers }) {
               </h3>
             </div>
             <div>
+              <ButtonRefresh onClick={handleRefresh} />
               <button
                 onClick={() => openModal()}
                 className="bg-tertiary px-5 py-1 font-medium text-md rounded"
@@ -53,7 +138,7 @@ export default function CardTableCustomers({ color, customers, setCustomers }) {
                       : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
                   }
                 >
-                  Project
+                  Name
                 </th>
                 <th
                   className={
@@ -115,72 +200,11 @@ export default function CardTableCustomers({ color, customers, setCustomers }) {
                 ></th>
               </tr>
             </thead>
-            <tbody>
-              {customers
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .map((customer) => (
-                  <tr key={customer._id}>
-                    <th className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left flex items-center">
-                      <img
-                        src={require("../../assets/img/bootstrap.jpg")}
-                        className="h-12 w-12 bg-white rounded-full border"
-                        alt="..."
-                      ></img>{" "}
-                      <span
-                        className={
-                          "ml-3 font-bold " +
-                          +(color === "light"
-                            ? "text-blueGray-600"
-                            : "text-white")
-                        }
-                      >
-                        {customer.name}
-                      </span>
-                    </th>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {customer.phone}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {customer.email}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {customer.address}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {customer.createdAt.slice(0, 16)}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                      {customer.status ? (
-                        <>
-                          <FaCircle className="text-green-500 mr-2 inline" />
-                          <span className="font-medium">seen</span>
-                        </>
-                      ) : (
-                        <>
-                          <FaCircle className="text-red-500 mr-2 inline" />
-                          <span className="font-medium">unseen</span>
-                        </>
-                      )}
-                    </td>
-                    <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-right relative">
-                      <DropdownTableCustomer
-                        customer={customer}
-                        customers={customers}
-                        setCustomers={setCustomers}
-                      />
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
+            <tbody>{customers?.loading ? <TableLoader /> : content}</tbody>
           </table>
         </div>
       </div>
-      <ModalAddCustomer
-        isOpen={modalIsOpen}
-        closeModal={closeModal}
-        customers={customers}
-        setCustomers={setCustomers}
-      />
+      <ModalAddCustomer isOpen={modalIsOpen} closeModal={closeModal} />
     </>
   );
 }

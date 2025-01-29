@@ -5,30 +5,38 @@ import { toast } from "react-toastify";
 // components
 import ModalConfirmation from "../Modals/ModalConfirmation";
 import useModal from "../../hooks/useModal";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_USERS } from "../../store/actionTypes";
 
-const DropdownTableUser = ({ user, users, setUsers }) => {
+const DropdownTableUser = ({ user, googleUser }) => {
+  const { users, dispatch, apiUrl } = useGlobalStore();
   // dropdown props
   const [dropdownPopoverShow, setDropdownPopoverShow] = React.useState(false);
   const btnDropdownRef = React.createRef();
   const popoverDropdownRef = React.createRef();
   const { modalIsOpen, setModalIsOpen, closeModal } = useModal(false);
+
   const removeUsers = () => {
-    fetch(`http://localhost:9000/user/${user._id}`, {
+    fetch(`${apiUrl}/users/${user._id}`, {
       method: "DELETE",
       headers: {
         "content-type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.deletedCount > 0) {
-          const filteredUsers = users.filter((item) => item._id !== user._id);
-          setUsers(filteredUsers);
+          const filteredUsers = users?.data.filter(
+            (item) => item._id !== user._id
+          );
+          dispatch({ type: FETCH_USERS, payload: filteredUsers });
           toast.success("successfully deleted.");
         }
       })
       .catch((err) => console.log(err));
   };
+
   return (
     <>
       <a
@@ -54,22 +62,18 @@ const DropdownTableUser = ({ user, users, setUsers }) => {
           className={
             "text-sm py-2 px-4 font-normal block w-full whitespace-nowrap bg-transparent text-blueGray-700"
           }
-          onClick={(e) => e.preventDefault()}
-        >
-          Modify Customer
-        </a>
-        <a
-          href="#pablo"
-          className={
-            "text-sm py-2 px-4 font-normal block w-full whitespace-nowrap bg-transparent text-blueGray-700"
-          }
           onClick={(e) => {
             e.preventDefault();
-            setModalIsOpen(true);
-            setDropdownPopoverShow(false);
+            if (user.role === "moderate") {
+              setModalIsOpen(true);
+              setDropdownPopoverShow(false);
+            } else {
+              toast.warning("admin user can't be remved!!!");
+              setDropdownPopoverShow(false);
+            }
           }}
         >
-          Remove Customer
+          Remove User
         </a>
       </div>
       <ModalConfirmation

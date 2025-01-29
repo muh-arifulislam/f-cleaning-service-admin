@@ -4,8 +4,16 @@ import { toast } from "react-toastify";
 
 // components
 import ModalConfirmation from "../Modals/ModalConfirmation";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_SHOWCASES } from "../../store/actionTypes";
 
-const DropdownShowcaseCard = ({ showcase, showcases, setShowcases }) => {
+const DropdownShowcaseCard = ({
+  showcase,
+  googleUser,
+  setViewShowcaseImg,
+  openModalView,
+}) => {
+  const { showcases, dispatch, apiUrl } = useGlobalStore();
   // dropdown props
   const [dropdownPopoverShow, setDropdownPopoverShow] = React.useState(false);
   const btnDropdownRef = React.createRef();
@@ -21,24 +29,50 @@ const DropdownShowcaseCard = ({ showcase, showcases, setShowcases }) => {
   };
 
   const removeShowcase = () => {
-    fetch(`http://localhost:9000/showcase/${showcase._id}`, {
+    const id = toast.loading("Showcase is deleting...");
+
+    fetch(`${apiUrl}/showcases/${showcase._id}`, {
       method: "DELETE",
       headers: {
-        "content-type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
-      body: JSON.stringify({ img: showcase.img }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.deletedCount) {
           setDropdownPopoverShow(false);
-          toast.success("successfully deleted showcase");
-          const filteredShowcases = showcases.filter(
+          const filteredShowcases = showcases.data.filter(
             (item) => item._id !== showcase._id
           );
-          setShowcases(filteredShowcases);
+          dispatch({ type: FETCH_SHOWCASES, payload: filteredShowcases });
+
+          toast.update(id, {
+            render: "Showcase successfully deleted.",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        } else {
+          toast.update(id, {
+            render: "Failed to delete showcase...!",
+            type: "error",
+            isLoading: false,
+            closeButton: true,
+            autoClose: 3000,
+            hideProgressBar: false,
+          });
         }
-      });
+      })
+      .catch((error) =>
+        toast.update(id, {
+          render: "Failed to delete showcase...!",
+          type: "error",
+          isLoading: false,
+          closeButton: true,
+          autoClose: 3000,
+          hideProgressBar: false,
+        })
+      );
   };
 
   return (
@@ -50,6 +84,7 @@ const DropdownShowcaseCard = ({ showcase, showcases, setShowcases }) => {
         onClick={(e) => {
           e.preventDefault();
           setDropdownPopoverShow(!dropdownPopoverShow);
+          setViewShowcaseImg(`${showcase.img}`);
         }}
       >
         <FaEllipsisV />
@@ -66,9 +101,13 @@ const DropdownShowcaseCard = ({ showcase, showcases, setShowcases }) => {
           className={
             "text-sm py-2 px-4 font-normal block w-full whitespace-nowrap bg-transparent text-blueGray-700"
           }
-          onClick={(e) => e.preventDefault()}
+          onClick={(e) => {
+            e.preventDefault();
+            openModalView();
+            setDropdownPopoverShow(false);
+          }}
         >
-          Modify Service
+          View Showcase
         </a>
         <a
           href="#pablo"
@@ -81,7 +120,7 @@ const DropdownShowcaseCard = ({ showcase, showcases, setShowcases }) => {
             setDropdownPopoverShow(false);
           }}
         >
-          Remove Service
+          Remove Showcase
         </a>
       </div>
       <ModalConfirmation

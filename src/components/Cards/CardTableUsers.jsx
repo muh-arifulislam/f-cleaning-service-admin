@@ -4,26 +4,73 @@ import PropTypes from "prop-types";
 // components
 import DropdownTableUser from "../Dropdowns/DropdownTableUser";
 import ModalAddUser from "../Modals/ModalAddUser";
+import CardTableError from "../Cards/CardTableError";
 import useModal from "../../hooks/useModal";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { useAuthState } from "react-firebase-hooks/auth";
+import auth from "../../firebase.init";
+import {
+  SET_LOADING,
+  SET_ERROR,
+  FETCH_USERS,
+} from "../../store/actionTypes.js";
+import TableLoader from "../Loader/TableLoader";
+import { FaUser } from "react-icons/fa";
 
-export default function CardTableUsers({ color, users, setUsers }) {
+export default function CardTableUsers({ color }) {
+  const { users, dispatch, apiUrl } = useGlobalStore();
+  const [googleUser, googleLoading, googleRrror] = useAuthState(auth);
   const { modalIsOpen, closeModal, openModal } = useModal(false);
-
-  // Input date string
-  const dateString = "2023-10-03T17:00:00Z";
-
-  // Parse the date string into a Date object
-  const date = new Date(dateString);
-
-  // Extract day, month, and year components
-  const day = date.getDate();
-  const month = date.getMonth() + 1; // Month is zero-based, so add 1
-  const year = date.getFullYear();
-
-  // Format the components as "dd-mm-yyyy"
-  const formattedDate = `${day.toString().padStart(2, "0")}-${month
-    .toString()
-    .padStart(2, "0")}-${year}`;
+  const handleRefresh = () => {
+    dispatch({ type: SET_LOADING, target: "users" });
+    fetch(`${apiUrl}/users`, {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        dispatch({ type: FETCH_USERS, payload: data });
+      })
+      .catch((error) =>
+        dispatch({ type: SET_ERROR, target: "users", payload: error.message })
+      );
+  };
+  if (users.loading) {
+    return <TableLoader />;
+  }
+  if (users.error) {
+    return <CardTableError error={users.error} />;
+  }
+  let content = (
+    <>
+      {users?.data
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map((user) => (
+          <tr key={user._id} className="font-semibold border-b">
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              <div className="flex items-center gap-x-3">
+                <FaUser className="text-lg" />
+                <span>{user.name}</span>
+              </div>
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              {user.phone}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              {user.email}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+              {user.role}
+            </td>
+            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-right relative">
+              <DropdownTableUser user={user} googleUser={googleUser} />
+            </td>
+          </tr>
+        ))}
+    </>
+  );
   return (
     <>
       <div
@@ -45,6 +92,12 @@ export default function CardTableUsers({ color, users, setUsers }) {
               </h3>
             </div>
             <div>
+              <button
+                onClick={() => handleRefresh()}
+                className="bg-slate-200 px-5 py-1 mr-5 font-medium text-md rounded"
+              >
+                Refresh
+              </button>
               <button
                 onClick={() => openModal()}
                 className="bg-tertiary px-5 py-1 font-medium text-md rounded"
@@ -109,54 +162,14 @@ export default function CardTableUsers({ color, users, setUsers }) {
                 ></th>
               </tr>
             </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id}>
-                  <th className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left flex items-center">
-                    <img
-                      src={require("../../assets/img/bootstrap.jpg")}
-                      className="h-12 w-12 bg-white rounded-full border"
-                      alt="..."
-                    ></img>{" "}
-                    <span
-                      className={
-                        "ml-3 font-bold " +
-                        +(color === "light"
-                          ? "text-blueGray-600"
-                          : "text-white")
-                      }
-                    >
-                      {user.name}
-                    </span>
-                  </th>
-                  <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                    {user.phone}
-                  </td>
-                  <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                    {user.email}
-                  </td>
-                  <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                    {user.role}
-                  </td>
-
-                  <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-right relative">
-                    <DropdownTableUser
-                      user={user}
-                      users={users}
-                      setUsers={setUsers}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            <tbody>{users?.loading ? <TableLoader /> : content}</tbody>
           </table>
         </div>
       </div>
       <ModalAddUser
         isOpen={modalIsOpen}
         closeModal={closeModal}
-        users={users}
-        setUsers={setUsers}
+        googleUser={googleUser}
       />
     </>
   );

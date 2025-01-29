@@ -1,4 +1,5 @@
 import React from "react";
+import DropdownUser from "../../components/Dropdowns/DropdownUser";
 
 export default function Navbar() {
   return (
@@ -29,7 +30,7 @@ export default function Navbar() {
           </form>
           {/* User */}
           <ul className="relative flex-col md:flex-row list-none items-center hidden md:flex">
-            {/* <UserDropdown /> */}
+            <DropdownUser />
           </ul>
         </div>
       </nav>

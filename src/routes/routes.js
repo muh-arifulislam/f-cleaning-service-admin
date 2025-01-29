@@ -9,11 +9,11 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Customers from "../pages/Customers/Customers";
 import Reviews from "../pages/Reviews/Reviews";
 import Users from "../pages/Users/Users";
-import Services from "../pages/Services/Services";
 import Showcases from "../pages/Showcases/Showcases";
 import Login from "../pages/Auth/Login";
 
 import RequireAuth from "../authentication/RequireAuth.jsx";
+import RequireAdmin from "../authentication/RequireAdmin.jsx";
 
 const routes = createBrowserRouter([
   {
@@ -33,10 +33,6 @@ const routes = createBrowserRouter([
         element: <Dashboard />,
       },
       {
-        path: "service",
-        element: <Services />,
-      },
-      {
         path: "customer",
         element: <Customers />,
       },
@@ -50,7 +46,11 @@ const routes = createBrowserRouter([
       },
       {
         path: "user",
-        element: <Users />,
+        element: (
+          <RequireAdmin>
+            <Users />
+          </RequireAdmin>
+        ),
       },
     ],
   },

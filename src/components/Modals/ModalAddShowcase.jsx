@@ -1,8 +1,17 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useGlobalStore } from "../../store/GlobalStoreContext";
+import { FETCH_SHOWCASES } from "../../store/actionTypes";
 
-const ModalAddShowcase = ({ isOpen, closeModal, showcases, setShowcases }) => {
+const ModalAddShowcase = ({
+  isOpen,
+  closeModal,
+  googleUser,
+  openLoaderModal,
+  closeLoaderModal,
+}) => {
+  const { showcases, dispatch, apiUrl, fetchData } = useGlobalStore();
   const modalClasses = isOpen
     ? "fixed inset-0 flex items-center justify-center z-50"
     : "hidden";
@@ -13,38 +22,54 @@ const ModalAddShowcase = ({ isOpen, closeModal, showcases, setShowcases }) => {
     clearErrors,
     formState: { errors },
   } = useForm();
-  const onSubmit = (data) => {
-    const image = data.image[0];
-    const formData = new FormData();
-    formData.append("image", image);
 
-    fetch("http://localhost:9000/upload/image", {
-      method: "POST",
-      body: formData,
-    })
-      .then((res) => res.json())
-      .then((resData) => {
-        console.log(resData);
-        if (resData.acknowledgement) {
-          let doc = { title: data.title, img: resData.img };
-          fetch("http://localhost:9000/showcase", {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-            },
-            body: JSON.stringify(doc),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.acknowledgement) {
-                reset();
-                toast.success("shocase added successfull!!!");
-                setShowcases([...showcases, data.showcase]);
-                closeModal();
-              }
-            });
-        }
+  const handleUploadShowcase = async (payload) => {
+    const id = toast.loading("Showcase is uploading...");
+    try {
+      const res = await fetch(`${apiUrl}/showcases`, {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        body: payload,
       });
+
+      const resData = await res.json();
+
+      if (!res.ok) throw new Error(resData.message || "Upload failed!");
+      toast.update(id, {
+        render: "Showcase uploaded successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
+      fetchData(
+        "showcases",
+        FETCH_SHOWCASES,
+        "http://localhost:9000/showcases"
+      );
+    } catch (err) {
+      toast.update(id, {
+        render: "Failed to upload showcase...!",
+        type: "error",
+        isLoading: false,
+        closeButton: true,
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
+    }
+  };
+
+  const onSubmit = (data) => {
+    closeModal();
+    const image = data.image[0];
+    const payload = { title: data?.title };
+
+    const formData = new FormData();
+    formData.append("file", image);
+    formData.append("data", JSON.stringify(payload));
+    handleUploadShowcase(formData);
   };
   return (
     <div className={modalClasses}>
