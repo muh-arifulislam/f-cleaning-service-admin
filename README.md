@@ -1,70 +1,85 @@
-# Getting Started with Create React App
+# Cleaning Service - Admin Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Live Admin Dashboard: [https://admin-gocleanix.netlify.app/admin](https://admin-gocleanix.netlify.app/admin)
 
-## Available Scripts
+This is the **admin frontend** of the Cleaning Service Website, designed for managing services, orders, customers, and reviews. Admins and moderators can oversee service bookings and customer interactions efficiently.
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Admin & Moderator Roles:**
+  - **Admin:** Full control, including user management (add/remove users).
+  - **Moderator:** Can manage orders, services, showcases, and reviews but cannot add/remove users.
+- **Secure Authentication:**
+  - Login via **Email & Password** or **Google Authentication** (Firebase + React Firebase Hooks).
+- **Data Visualization:**
+  - Nivo charts (`@nivo/bar`, `@nivo/line`, `@nivo/pie`) for statistics.
+- **Form Handling:**
+  - **React Hook Form** for user-friendly data entry.
+- **Order & Service Management:**
+  - Update orders, add showcase projects with images, and manage customer interactions.
+- **Notifications:**
+  - Real-time updates with **React Toastify**.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Frontend Framework:** React.js
+- **State Management:** React Hooks
+- **Routing:** React Router DOM
+- **Form Handling:** React Hook Form
+- **Authentication:** Firebase (Google login), JWT (Email & Password login)
+- **Data Visualization:** Nivo Charts
+- **UI Components:** React Icons
+- **Notifications:** React Toastify
+- **Date Handling:** Day.js
 
-### `npm test`
+## Pages & Functionalities
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Dashboard:** Overview of orders, services, and reviews.
+- **Manage Users:** Add/remove users (admin only).
+- **Orders:** View and update customer orders.
+- **Services:** Manage available cleaning services.
+- **Showcases:** Add and display past service projects with images.
+- **Reviews:** Moderate customer feedback.
 
-### `npm run build`
+## Installation & Setup
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. Clone the repository:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+   ```sh
+   git clone https://github.com/muh-arifulislam/f-cleaning-service-admin
+   cd f-cleaning-service-admin
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Install dependencies:
 
-### `npm run eject`
+   ```sh
+   npm install
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. Set up Firebase authentication and get the configuration.
+   Create a `.env` file and add the following:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   ```env
+   REACT_APP_FIREBASE_API_KEY=your_firebase_api_key
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+   REACT_APP_FIREBASE_PROJECT_ID=your_firebase_project_id
+   REACT_APP_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_firebase_sender_id
+   REACT_APP_FIREBASE_APP_ID=your_firebase_app_id
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4. Start the application:
+   ```sh
+   npm run start
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## API Integration
 
-## Learn More
+This frontend communicates with the backend server hosted at:
+[https://cleaning-service-server-one.vercel.app/](https://cleaning-service-server-one.vercel.app/)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Backend project: [https://github.com/muh-arifulislam/f-cleaning-service-server](https://github.com/muh-arifulislam/f-cleaning-service-server)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## License
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is licensed under the MIT License.

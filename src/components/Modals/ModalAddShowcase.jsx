@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { useGlobalStore } from "../../store/GlobalStoreContext";
 import { FETCH_SHOWCASES } from "../../store/actionTypes";
+import { sendImageToCloudinary } from "../../utils/sendImageToCloudinary";
 
 const ModalAddShowcase = ({
   isOpen,
@@ -24,31 +25,54 @@ const ModalAddShowcase = ({
   } = useForm();
 
   const handleUploadShowcase = async (payload) => {
+    const res = await fetch(`${apiUrl}/showcases`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const resData = await res.json();
+    return resData;
+  };
+
+  const onSubmit = async (data) => {
     const id = toast.loading("Showcase is uploading...");
+    closeModal();
+
+    const title = data.title;
+    const image = data.image[0];
+
+    const formData = new FormData();
+    formData.append("file", image);
+    formData.append("upload_preset", "gocleanix");
+
     try {
-      const res = await fetch(`${apiUrl}/showcases`, {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: payload,
-      });
+      const { secure_url, public_id } = await sendImageToCloudinary(formData);
+      if (secure_url) {
+        const payload = {
+          title,
+          img: secure_url,
+          imagePublicId: public_id,
+        };
 
-      const resData = await res.json();
+        const res = await handleUploadShowcase(payload);
 
-      if (!res.success) throw new Error(resData.message || "Upload failed!");
-      toast.update(id, {
-        render: "Showcase uploaded successfully!",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
-
-      fetchData(
-        "showcases",
-        FETCH_SHOWCASES,
-        "http://localhost:9000/showcases"
-      );
+        if (res.success) {
+          toast.update(id, {
+            render: "Showcase uploaded successfully!",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+          });
+          fetchData("showcases", FETCH_SHOWCASES, `${apiUrl}/showcases`);
+        } else {
+          throw new Error("Failed to upload image to cloudinary");
+        }
+      } else {
+        throw new Error("Failed to upload image to cloudinary");
+      }
     } catch (err) {
       toast.update(id, {
         render: "Failed to upload showcase...!",
@@ -61,16 +85,6 @@ const ModalAddShowcase = ({
     }
   };
 
-  const onSubmit = (data) => {
-    closeModal();
-    const image = data.image[0];
-    const payload = { title: data?.title };
-
-    const formData = new FormData();
-    formData.append("file", image);
-    formData.append("data", JSON.stringify(payload));
-    handleUploadShowcase(formData);
-  };
   return (
     <div className={modalClasses}>
       <div className="modal-overlay fixed inset-0 bg-black opacity-50"></div>
